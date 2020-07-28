@@ -1,4 +1,3 @@
-# Starter pipeline
 trigger:
 - master
 
@@ -6,10 +5,21 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    sudo npm install -g aws-cdk
+    cd fargate-service-with-auto-scaling
+    npm install
+    npm run build
+    cdk synth
+  displayName: 'npm install and build'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/fargate-service-with-auto-scaling/cdk.out'
+    ArtifactName: 'CDKOut'
+    publishLocation: 'Container'
